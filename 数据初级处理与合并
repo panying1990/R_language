@@ -1,0 +1,149 @@
+# _author_ = panying
+# 模块目的：快速处理电商监控数据导入问题-项目管控部监控数据
+# 最后编辑时间："2017-11-15"
+# Sys.Date()
+
+# 数据环境================================================================ 
+library(DBI)
+library(RMySQL)
+
+# 数据库环境设置
+conn1<-dbConnect(MySQL(),dbname="Olistat",host="192.168.111.251",username="root",password="P#y20bsy17")
+dbSendQuery(conn1,"SET NAMES gbk")
+
+
+
+# 设置工作目录
+dir<-"V:/更新数据/碧生源药品旗舰店/监控数据/项目管控部数据"
+setwd(dir)
+getwd()
+
+# 设置当天时间函数
+now_date<-Sys.Date()
+now_hour<-as.numeric(substr(Sys.time(),12,13))
+now_timerange<-ifelse(now_hour<12|now_hour==12,"上午","下午")
+month_date<-substr(now_date,6,7)
+day_date<-substr(now_date,9,10)
+file_names<-paste0(month_date,".",day_date,".csv")
+file_names_data<-read.csv(file_names)
+file_names_data<-read.csv(file_names,stringsAsFactors = FALSE)
+for(i in 0:nrow(file_names_data))
+{
+  file_names_data$产品ID[i]<-trimws(gsub("[?|=|/|.|:|a-z]","",file_names_data$产品详情页链接[i]))
+}
+
+for(i in 0:nrow(file_names_data))
+{
+  ifelse(file_names_data$渠道[i]=="阿里健康大药房"|file_names_data$渠道[i]=="京东大药房",file_names_data$渠道s[i]<-1,file_names_data$渠道s[i]<-2)
+  ifelse(file_names_data$品牌[i]=="碧生源",file_names_data$品牌s[i]<-1,file_names_data$品牌s[i]<-2)
+  file_names_data$规格s[i]<-gsub("[0-9|艾丽|雅塑|碧奥|*|+|粒]","",file_names_data$规格[i])
+  ifelse(file_names_data$规格s[i]=="=",file_names_data$规格s[i]<-2,file_names_data$规格s[i]<-1)
+}
+ 
+# 统一导入数据名称
+names(file_names_data)[1:(ncol(file_names_data)-3)]<-c("平台","渠道","品类","品牌","规格" ,"截取数据的时间点", "日常价","日常粒单价","活动价","款式","活动粒单价","月销量","评价量","流量","日期","产品详情页链接","产品ID" )
+file_names_data$日期<-now_date
+file_names_data$时间段<-now_timerange
+
+# dbSendQuery(conn1,"DROP table now_traffic")
+dbListTables(conn1) 
+# 添加数据，且不去重
+dbWriteTable(conn1,"olistat_project_data",file_names_data,append = TRUE,row.names = FALSE)
+# 添加数据，且去重
+dbWriteTable(conn1,"olistat_project_data",file_names_data,overwrite = TRUE, row.names = FALSE)
+
+
+
+# _author_ = panying
+# 模块目的：快速处理电商监控数据导入问题-销量
+# 最后编辑时间："2017-11-15"
+# Sys.Date()
+
+# 数据环境================================================================ 
+library(DBI)
+library(RMySQL)
+
+
+# 数据库环境设置
+conn1<-dbConnect(MySQL(),dbname="Olistat",host="192.168.111.251",username="root",password="P#y20bsy17")
+dbSendQuery(conn1,"SET NAMES gbk")
+
+
+# 支付子订单数导入
+dir<-"V:/更新数据/碧生源药品旗舰店/监控数据/支付子订单数"
+setwd(dir)
+getwd()
+
+# 数据初步处理
+now_date<-Sys.Date()
+month_date<-substr(now_date,6,7)
+day_date<-substr(now_date,9,10)
+file_names<-paste0(month_date,".",day_date,".csv")
+file_names_data<-read.csv(file_names,stringsAsFactors = FALSE)
+for(i in 0:nrow(file_names_data))
+{
+  file_names_data$价格[i]<-(trimws(gsub("价格：", "", file_names_data$价格[i])))
+  file_names_data$产品ID[i]<-trimws(gsub("[?|=|/|.|:|a-z]","",file_names_data$产品详情页链接[i]))
+}
+file_names_data$日期<-now_date
+
+
+# dbSendQuery(conn1,"DROP table olistat_sales_data")
+# dbListTables(conn1)  
+
+# 添加数据，不清空直接添加
+dbWriteTable(conn1,"olistat_sales_data",file_names_data,append = TRUE,row.names = FALSE)
+dbListTables(conn1)  
+# 添加数据，清空后
+#dbWriteTable(conn1,"olistat_sales_data",file_names_data,overwrite = TRUE, row.names = FALSE)
+
+
+# _author_ = panying
+# 模块目的：快速处理电商监控数据导入问题-流量指数
+# 最后编辑时间："2017-11-15"
+# Sys.Date()
+
+# 数据环境================================================================ 
+library(DBI)
+library(RMySQL)
+
+# 数据库环境设置
+conn1<-dbConnect(MySQL(),dbname="Olistat",host="192.168.111.251",username="root",password="P#y20bsy17")
+dbSendQuery(conn1,"SET NAMES gbk")
+
+# 设置工作目录
+dir<-"V:/更新数据/碧生源药品旗舰店/监控数据/流量指数"
+setwd(dir)
+getwd()
+
+now_date<-Sys.Date()
+month_date<-substr(now_date,6,7)
+day_date<-substr(now_date,9,10)
+file_names<-paste0(month_date,".",day_date,".csv")
+file_names_data<-read.csv(file_names,stringsAsFactors = FALSE)
+for(i in 0:nrow(file_names_data))
+{
+  file_names_data$价格[i]<-(trimws(gsub("价格：", "", file_names_data$价格[i])))
+  file_names_data$产品ID[i]<-trimws(gsub("[?|=|/|.|:|a-z]","",file_names_data$产品详情页链接[i]))
+}
+file_names_data$日期<-now_date
+
+# dbSendQuery(conn1,"DROP table now_traffic")
+dbListTables(conn1) 
+# 添加数据，且不去重
+dbWriteTable(conn1,"olistat_traffic_data",file_names_data,append = TRUE,row.names = FALSE)
+# 添加数据，且去重
+#dbWriteTable(conn1,"olistat_traffic_data",file_names_data,overwrite = TRUE, row.names = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
