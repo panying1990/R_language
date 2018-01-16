@@ -10,5 +10,6 @@
 
 ## 3、R语言-数据处理
 ### 3.1、天猫商家中心-交易管理-已购宝贝订单数据
-  将从该路径导出的订单数据，快速集聚并导入MYSQL搭建的数据库，包括csv数据读取，数据校验，数据格式处理，导入MySQL等部分 [R语言代码]:https://github.com/panying1990/R_language/blob/master/taobao_order_datainput
+  将从该路径导出的订单数据，快速集聚并导入MYSQL搭建的数据库，包括csv数据读取，数据校验，数据格式处理，导入MySQL等部分 
+  [R语言代码]:https://github.com/panying1990/R_language/blob/master/taobao_order_datainput
   
