@@ -14,3 +14,6 @@
   
   [R语言代码]:https://github.com/panying1990/R_language/blob/master/taobao_order_datainput"
   
+[foo]: http://example.com/  "Optional Title Here"
+[foo]: http://example.com/  'Optional Title Here'
+[foo]: http://example.com/  (Optional Title Here)
