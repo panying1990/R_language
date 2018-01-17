@@ -17,4 +17,4 @@
 #### 3.2、会员营销-微信好友-识别处理
   将通过开卷有奖所获得的微信好友信息进行统一管理，并识别出该类用户的统一特点
   
-  [R语言代码](https://github.com/panying1990/R_language/blob/master/taobao_order_datainput)
+  [R语言代码](https://github.com/panying1990/R_language/blob/master/weixin_user_recognize.R)
