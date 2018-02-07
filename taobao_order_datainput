@@ -1,6 +1,6 @@
 # _author_ = panying
-# 模块目的：快速处理碧生源药品旗舰店导入问题-天猫-订单数据，以及标记CRM数据
-# 最后编辑时间："2018-01-16"
+# 模块目的：快速处理碧生源药品旗舰店导入问题-天猫-订单数据
+# 最后编辑时间："2018-02-07"
 # Sys.Date()
 
 # 数据环境================================================================ 
@@ -13,12 +13,11 @@ conn1<-dbConnect(MySQL(),dbname="Olistat",host="192.168.111.251",username="root"
 dbSendQuery(conn1,"SET NAMES gbk")
 
 # 数据处理参数设置
-# 订单状态
 交易成功<-c("交易成功","交易成功_导入")
 交易失败<-c("交易失败","交易失败_导入")
 
 
-订单状态<-交易失败
+订单状态<-交易成功
 # 设置工作目录
 dir<-paste0("V:/更新数据/碧生源药品旗舰店/监控数据/订单数据/",订单状态[1])
 setwd(dir)
@@ -29,8 +28,8 @@ getwd()
 now_date<-Sys.Date()
 month_date<-substr(now_date,6,7)
 day_date<-substr(now_date,9,10)
-order_database<-"ExportOrderList"
-product_database<-"ExportOrderDetailList"
+order_database<-"ExportOrderListall"
+product_database<-"ExportOrderDetailListall"
 date_interval<-paste0(month_date,".",day_date,".csv")
 order_data_name<-paste0(order_database,date_interval)
 product_data_name<-paste0(product_database,date_interval)
@@ -49,6 +48,8 @@ product_data<-read.csv(product_data_name,stringsAsFactors = FALSE)
 ## 导入数据传送
 order_data_s<-order_data
 product_data_s<-product_data
+
+
 # 数据清洗调整--------------------------------
 for(i in 0:nrow(order_data))
 {
@@ -63,28 +64,14 @@ for(i in 0:nrow(product_data))
   product_data$商家编码[i]<-format(product_data$商家编码[i], scientific = FALSE)
 }
 
-
-# 统一导入数据名称
-names(order_data)[1:ncol(order_data)]<-c("订单编号", "买家会员名","买家支付宝账号","买家应付货款","买家应付邮费","买家支付积分",    
-                                         "总金额","返点积分","买家实际支付金额","买家实际支付积分","订单状态","买家留言",      
-                                         "收货人姓名","收货地址","运送方式","联系电话","联系手机","订单创建时间",    
-                                         "订单付款时间","宝贝标题","宝贝种类", "物流单号","物流公司","订单备注",        
-                                         "宝贝总数量","店铺Id","店铺名称","订单关闭原因","卖家服务费","买家服务费",      
-                                         "发票抬头","是否手机订单","分阶段订单信息","特权订金订单id","是否上传合同照片","是否上传小票",    
-                                         "是否代付","定金排名","修改后的sku","修改后的收货地址","异常信息","天猫卡券抵扣", 
-                                         "集分宝抵扣","是否是O2O交易","退款金额","预约门店","是否村淘订单","确认收货时间",    
-                                         "打款商家金额" ) 
-
-names(product_data)[1:ncol(product_data)]<-c("订单编号","标题","价格","购买数量","外部系统编号","商品属性","套餐信息","备注","订单状态","商家编码")
-
 order_data$添加时间<-Sys.Date()
 product_data$添加时间<-Sys.Date()
 
-# dbSendQuery(conn1,"DROP table now_traffic")
-dbListTables(conn1) 
-# 数据校验部分==============
+# 备注数据添加及数据导入==============
 order_tag_date<-max(sql_order_data$创建时间)
 order_now_date<-min(as.Date(order_data$订单创建时间))
+
+order_database_name<-paste0("olistat_order_data",Sys.Date())
 
 if(order_now_date>order_tag_date)
 {
@@ -96,21 +83,33 @@ if(order_now_date>order_tag_date)
 dbDisconnect(conn1)
 
 # 创建导入数据集================================
+# 订单数据中，数据自创建之日起，15天订单数据发生变动情况降低为0，因为导入CRM数据不可逆，故
+# 从2018年02月07日开始，导入订单数据设置如下：
+# day(the_last_time-15,now_date-15),而第一次初始化运行时间设置为：2018年01月15日0000时开始- now-15天止
 
-order_data_s$订单备注<-"碧生源药品旗舰店用户"
+# 导入数据时间筛选
+order_data_temp<-filter(order_data_s,(as.Date(order_data_s$订单创建时间,"%Y-%m-%d")<(Sys.Date()-15))&as.Date(order_data_s$订单创建时间,"%Y-%m-%d")>as.Date(43112
+,origin = "1900-01-01"))
+product_data_tempx<-product_data_s%>%inner_join(order_data_temp,by = "订单编号")
+product_data_temp<-product_data_tempx[ ,1:10]
+
+# 订单识别标注
+order_data_temp$订单备注<-"碧生源药品旗舰店用户"
 dir_s<-paste0("V:/更新数据/碧生源药品旗舰店/监控数据/订单数据/",订单状态[2])
-for( i in 0:nrow(order_data_s))
+for( i in 0:nrow(order_data_temp))
 {
-  order_data_s$订单编号[i]<-format(order_data_s$订单编号[i], scientific = FALSE)
+  order_data_temp$订单编号[i]<-format(order_data_temp$订单编号[i], scientific = FALSE)
 }
-if(订单状态[1]=="交易失败")
+if(订单状态[1]=="交易成功")
 {
   file_name_s<-paste0(dir_s,"/",order_data_name)
-  write.csv(order_data_s,file_name_s,row.names = FALSE,fileEncoding = "gbk")
+  write.csv(order_data_temp,file_name_s,row.names = FALSE,fileEncoding = "gbk")
   file_name_s<-paste0(dir_s,"/",product_data_name)
-  write.csv(product_data_s,file_name_s,row.names = FALSE,fileEncoding = "gbk")
+  write.csv(product_data_temp,file_name_s,row.names = FALSE,fileEncoding = "gbk")
   print("转换成功")
 }else
   {
     print("转换失败")
-}
+  }
+
+
