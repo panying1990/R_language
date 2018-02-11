@@ -61,10 +61,30 @@ name_department<-select(waiqin_employee,"姓名","职务","部门","部门全路
 name_role<-select(waiqin_employee,"姓名","职务","部门","角色")
 name_role_now<-filter(name_role,is.na(str_match(姓名, "365|珠海|停用")))
 name_department_now<-filter(name_department,is.na(str_match(姓名, "365|珠海|停用")))
-# 将部门全路径最微端作为该人员部门号
-department_all<-str_split(name_department_now$部门全路径,"/")
-department_dataframe<-data.frame("员工号"=rep(1,642),"姓名"=rep(as.character("不知道"),642),"职务"=rep(as.character("不知道"),642),"事业部"=rep(as.character("不知道"),642),"地区"=rep(as.character("不知道"),642),stringsAsFactors=FALSE)
 
+
+
+
+# 将部门全路径进行拆分作为该人员部门号
+department_all<-str_split(name_department_now$部门全路径,"/")
+department_dataframe<-data.frame("员工号"=rep(1,642),"姓名"=rep(as.character("不知道"),642),"职务"=rep(as.character("不知道"),642),"区域"=rep(as.character("不知道"),642),"事业部"=rep(as.character("不知道"),642),"地区"=rep(as.character("不知道"),642),stringsAsFactors=FALSE)
+for(i in 1:nrow(name_department_now)){
+  role_name<-name_department_now$姓名[i]
+  role_position<-name_department_now$职务[i]
+  role_department<-name_department_now$部门[i]
+  for(j in 1:lengths(department_all[i])){
+    temp<-as.integer(temp+1)
+    department_dataframe$员工号[temp]<-i
+    department_dataframe$姓名[temp]<-role_name
+    department_dataframe$职务[temp]<-role_position
+    department_dataframe$部门[temp]<-role_department
+    department<-department_all[[i]][j]
+    if(j==2){department_dataframe$区域[temp]<-department}
+    else if(j==3){department_dataframe$事业部[temp]<-department}
+    else if(j==4){department_dataframe$地区[temp]<-department}
+    else{}
+  }
+}
 
 
 
