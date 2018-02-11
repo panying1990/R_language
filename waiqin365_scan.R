@@ -92,7 +92,7 @@ for(i in 1:nrow(name_department_now)){
 # 将角色权限进行拆分。
 role_prtmissions_data<-str_split(name_role_now$角色, ",")
 temp<-0
-temp_dataframe<-data.frame("员工号"=rep(1,1181),"姓名"=rep(as.character("不知道"),1181),"职务"=rep(as.character("不知道"),1181),"部门"=rep(as.character("不知道"),1181),"角色"=rep(as.character("不知道"),1181),stringsAsFactors=FALSE)
+role_dataframe<-data.frame("员工号"=rep(1,1181),"姓名"=rep(as.character("不知道"),1181),"职务"=rep(as.character("不知道"),1181),"部门"=rep(as.character("不知道"),1181),"角色"=rep(as.character("不知道"),1181),stringsAsFactors=FALSE)
 for(i in 1:nrow(name_role_now)){
      role_name<-name_role_now$姓名[i]
      role_position<-name_role_now$职务[i]
@@ -101,11 +101,11 @@ for(i in 1:nrow(name_role_now)){
       temp<-as.integer(temp+1)
       role_permissions<-role_prtmissions_data[[i]][j]
       print(paste0("",role_name,"：第",role_permissions,"个角色,累计共",temp,"角色+姓名"))
-      temp_dataframe$员工号[temp]<-i
-      temp_dataframe$姓名[temp]<-role_name
-      temp_dataframe$职务[temp]<-role_position
-      temp_dataframe$部门[temp]<-role_department
-      temp_dataframe$角色[temp]<-role_permissions
+      role_dataframe$员工号[temp]<-i
+      role_dataframe$姓名[temp]<-role_name
+      role_dataframe$职务[temp]<-role_position
+      role_dataframe$部门[temp]<-role_department
+      role_dataframe$角色[temp]<-role_permissions
      }
 }
 
