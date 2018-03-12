@@ -163,6 +163,20 @@ sale_ana_data$扫码增长率[sale_ana_data$时间序列==2]<-round(sale_ana_dat
 
 sale_ana_data$扫码增长率[sale_ana_data$扫码增长率==Inf]<-0
 
+
+# 计算扫码增长率
+# 计算增长率
+sale_ana_data$小包扫码增长率[sale_ana_data$时间序列==8]<-round(sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==8]/sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==7]-1,3)*100
+sale_ana_data$小包扫码增长率[sale_ana_data$时间序列==7]<-round(sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==7]/sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==6]-1,3)*100
+sale_ana_data$小包扫码增长率[sale_ana_data$时间序列==6]<-round(sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==6]/sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==5]-1,3)*100
+sale_ana_data$小包扫码增长率[sale_ana_data$时间序列==5]<-round(sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==5]/sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==4]-1,3)*100
+sale_ana_data$小包扫码增长率[sale_ana_data$时间序列==4]<-round(sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==4]/sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==3]-1,3)*100
+sale_ana_data$小包扫码增长率[sale_ana_data$时间序列==3]<-round(sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==3]/sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==2]-1,3)*100
+sale_ana_data$小包扫码增长率[sale_ana_data$时间序列==2]<-round(sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==2]/sale_ana_data$全国A小包数_人次[sale_ana_data$时间序列==1]-1,3)*100
+
+sale_ana_data$小包扫码增长率[sale_ana_data$小包扫码增长率==Inf]<-0
+
+
 # 计算增长率
 sale_ana_data$B增长率[sale_ana_data$时间序列==8]<-round(sale_ana_data$全国B条盒数[sale_ana_data$时间序列==8]/sale_ana_data$全国B条盒数[sale_ana_data$时间序列==7]-1,3)*100
 sale_ana_data$B增长率[sale_ana_data$时间序列==7]<-round(sale_ana_data$全国B条盒数[sale_ana_data$时间序列==7]/sale_ana_data$全国B条盒数[sale_ana_data$时间序列==6]-1,3)*100
@@ -177,38 +191,46 @@ sale_ana_data$增长极差<-round(sale_ana_data$A增长率-sale_ana_data$B增长
 
 # A产品销量增长率与扫码率的关系
 sale_ana_data_temp<-subset(sale_ana_data,全国A小包数>0,select=c("省份城市","时间序列","A增长率","小包扫码率"))
-names(sale_ana_data_temp)<-c("省份城市","时间序列","五粮醇香增长率","小包扫码率")
+names(sale_ana_data_temp)<-c("省份城市","时间序列","五粮醇香销量增长率","小包扫码率")
 sale_ana_data_temp<-melt(sale_ana_data_temp,id=c("省份城市","时间序列"))
-names(sale_ana_data_temp)<-names(sale_ana_data_temp)
+names(sale_ana_data_temp)<-c("省份城市","时间序列","比率类型","值")
 
-增长率极差
 
-ggplot(sale_ana_data_temp,aes(x=时间序列,y=value,group=variable,colour=variable))+
+
+ggplot(sale_ana_data_temp,aes(x=时间序列,y=值,group=比率类型,colour=比率类型))+
   geom_line(linetype="dashed", lineend = "round",size=0.5) + 
   geom_point(size=3, shape=21, fill="white")+
-  ggtitle("全国AB产品各城市增长率之间的关系")+
+  ggtitle("各城市五粮醇香销量增长率与小包扫码率关系")+
   theme_bw() +                         
   theme(legend.position = "bottom")+
   facet_wrap(~省份城市)+
-  ylab("百分比（%）")
+  ylab("百分比（%）")+
+  xlab("2017年07月-2018年02月")+
+  geom_smooth(method="lm",se=FALSE,size = 0.5)
 
 
-sale_ana_data_temp<-subset(sale_ana_data,全国A小包数>0,select=c("省份城市","时间序列","A增长率","B增长率"))
+# 销量增长率与扫码增长率之间的关系
+
+sale_ana_data_temp<-subset(sale_ana_data,全国A小包数>0,select=c("省份城市","时间序列","A增长率","小包扫码增长率"))
+names(sale_ana_data_temp)<-c("省份城市","时间序列","五粮醇香销量增长率","小包扫码增长率")
 sale_ana_data_temp<-melt(sale_ana_data_temp,id=c("省份城市","时间序列"))
 names(sale_ana_data_temp)<-names(sale_ana_data_temp)
 
+cor(sale_ana_data_temp)
 # 
 ggplot(sale_ana_data_temp,aes(x=时间序列,y=value,group=variable,colour=variable))+
   geom_line(linetype="dashed", lineend = "round",size=0.5) + 
   geom_point(size=3, shape=21, fill="white")+
-  ggtitle("全国A产品增长率、B产品增长率之间的ch关系")+
+  ggtitle("全国五粮醇香销量增长率与小包扫码增长率关系")+
   theme_bw() +                         
   theme(legend.position = "bottom")+
   facet_wrap(~省份城市)+
   ylab("百分比（%）")
 
-sale_ana_data_temp<-subset(sale_ana_data,全国A小包数>0,select=c("省份城市","时间序列","A增长率","B增长率"))
-sale_ana_data_temp<-melt(sale_ana_data_temp,id=c("省份城市","时间序列"))
+
+# 销售增长量与扫码率之间的关系
+sale_ana_data_temp<-subset(sale_ana_data,全国A小包数>0,select=c("省份城市","时间序列","A增长率","小包扫码率"))
+sale_ana_data_temp<-melt(sale_ana_data_temp,id=c("省份城市","时间序列","A增长率","小包扫码率"))
 names(sale_ana_data_temp)<-names(sale_ana_data_temp)
 
 增长率极差
@@ -221,3 +243,7 @@ ggplot(sale_ana_data,aes(x=时间序列,y=增长极差,group=省份城市,colour
   theme(legend.position = "bottom")+
   facet_wrap(~省份城市)+
   ylab("增长极差")
+
+
+# 相关性分析
+cor_data<-cor(sale_ana_data)
