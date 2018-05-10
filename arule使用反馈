@@ -1,0 +1,107 @@
+# _author_ = panying
+# 模块目的：代餐饼干重合人群分析。
+# 最后编辑时间："2018-05-08"
+# Sys.Date()
+
+# 数据环境================================================================ 
+library(DBI)
+library(RMySQL)
+library(dplyr)
+
+# 数据库环境设置
+conn1<-dbConnect(MySQL(),dbname="crm_kd",host="192.168.111.251",username="root",password="P#y20bsy17")
+dbSendQuery(conn1,"SET NAMES gbk")
+read_word<-dbSendQuery(conn1,"select * from pincha_transaction")
+pingan<-dbFetch(read_word, n = -1)
+pingan_product<-filter(pingan,item_sku!='赠品')
+pingan_product$word<-paste(pingan_product$sys_trade_id," ",pingan_product$item_sku)
+
+
+
+# 产品关联分析
+library(Matrix)
+library(arules)
+library(grid)
+library(arulesViz)
+
+
+
+# 产品分析=======================================
+# # 按照产品类型划分用户
+# pingan_product%>%group_by(item_sku)%>%summarise(n = n())
+# data(Groceries) 
+# Groce
+# summary(Groceries)
+# itemFrequency(Groceries[,1:3])
+# itemFrequencyPlot(Groceries,support = 0.1)
+# itemFrequencyPlot(Groceries,topN = 20)
+# image(Groceries[1:5]) 
+# apriori(Groceries)
+# grocery_rules <- apriori(data = Groceries,parameter = list(support = 0.006,confidence = 0.25,minlen = 2))
+# grocery_rules
+# summary(grocery_rules)
+# 
+# inspect(sort(grocery_rules,by="lift")[1:10])
+# fruit_rules <- subset(grocery_rules,items %in% "pip fruit")
+# inspect(fruit_rules[1:5])
+# 
+# # 转换成transactions的数据时间序列形式
+# install.packages("arulesSequences")
+# library(arulesSequences)
+# require(arulesSequences)
+# data<-data.frame(item=factor(pingan_product$产品类型))
+# data.tran<-as(data,"transactions")
+# transactionInfo(data.tran)$sequenceID<-pingan_product$sys_customer_id
+# transactionInfo(data.tran)<-transactionInfo(data.tran[,c("customerID")])
+
+
+
+
+
+## 采用rule中自带的read.trasaction 来创建信息,采用single模式==============
+data_text<-paste("")
+for(i in 1:nrow(pingan_product)){
+  data_temp<-data_text
+  data_text<-paste(data_temp,pingan_product$word[i],sep="\n")
+}
+cat(data_text)
+write(data_text, file = "data_text")
+
+data_text_tr <- read.transactions("data_text", format = "single", cols = c(1,2))
+inspect(data_text_tr)
+LIST(data_text_tr)
+summary(data_text_tr)
+
+
+itemFrequencyPlot(data_text_tr, support = 0.05, cex.names = 0.8) 
+
+
+rules<-apriori(data_text_tr,parameter = list(support = 0.05, confidence = 0.6))
+inspect(rules)
+print(data_text_rules)
+
+
+lbrary(arules)
+
+a<-matrix(0,7,4,dimnames=list(c("basket1","basket2","basket3","basket4", "basket5","basket6","basket7"),c("item1","item2","item3","item4")))
+a[1,]<-c(1,0,1,0)
+a[2,]<-c(0,0,1,1)
+a[3,]<-c(1,1,1,1)
+a[4,]<-c(1,1,0,0)
+a[5,]<-c(0,0,1,0)
+a[6,]<-c(1,0,1,1)
+a[7,]<-c(0,1,1,1)
+
+a.class<-as(a,"transactions")
+
+rules<-apriori(a.class,parameter=list(supp=0.2,conf=0.6,target="rules"))
+
+inspect(rules)
+
+
+
+read_word<-dbSendQuery(conn1,"select * from pincha_transaction2")
+pingant<-dbFetch(read_word, n = -1)
+names(pingant)[1:16]<-c("trans","item1","item2","item3","item4","item5","item6","item7","item8","item9","item10","item11","item12","item13","item14","item15")
+for (i in 1:nrow(pingant)) {pingant$trans[i]<-paste0("trans",i)}
+pingant.class<-as(pingant,"transactions")
